@@ -86,11 +86,32 @@ mapping(address  => HogwartsCardInfo) private _infos;                 // issuer�
 
         _mint(msg.sender, newTokenId);
         _issuerOfToken[newTokenId] = msg.sender;      
-        _amountOfTokenOwnedByIssuer[msg.sender]++;
+        //_amountOfTokenOwnedByIssuer[msg.sender]++;
+         if (!_amountOfTokenOwnedByIssuer[msg.sender]) {
+        _amountOfTokenOwnedByIssuer[msg.sender][_dormitory] = {
+        Gryffindor: 0,
+        Hufflepuff: 0,
+        Ravenclaw: 0,
+        Slytherin: 0
+           };
+        }
+        // 기숙사 별로 다른 amoutOfToken의 양을 준다. 
+        if (_dormitory === Dormitory.Gryffindor) {
+            _amountOfTokenOwnedByIssuer[msg.sender][Gryffindor] += 5;
+        } else if (_dormitory === Dormitory.Hufflepuff) {
+            _amountOfTokenOwnedByIssuer[msg.sender][Hufflepuff]+= 3;
+        } else if (_dormitory === Dormitory.Ravenclaw) {
+            _amountOfTokenOwnedByIssuer[msg.sender][ Ravenclaw] += 4;
+        } else if (_dormitory === Dormitory.Slytherin) {
+            _amountOfTokenOwnedByIssuer[msg.sender][ Slytherin] += 2;
+        }
+         return newTokenId;
+    }
 
+    
         emit HogwartsCardMinted(newTokenId, msg.sender, _name, _age, _description, _mbti, _hobby, _level, _blood, _dormitory);
         return newTokenId;
-    }
+    
 
     function _incrementTokenId() internal returns (uint256) {
         _tokenIdCounter.increment();
