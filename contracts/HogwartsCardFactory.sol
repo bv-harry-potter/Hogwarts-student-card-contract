@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity >0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -24,20 +24,10 @@ contract HogwartsCardFactory is ERC721 {
         string dormitory;    // 소속 기숙사
     }
 
-    modifier isHogwartsCardInfoRegistered(){
-        HogwartsCardInfo memory hogwartsCardInfo = _infos[msg.sender];
-        require(
-            keccak256(abi.encodePacked(hogwartsCardInfo.name)) != keccak256(abi.encodePacked("")),
-            "Register your Hogwarts Card info First"
-        );
-        _;
-    }
-
-mapping(address  => HogwartsCardInfo) private _infos;                 // issuer가 발급한 카드 정보
+    mapping(address  => HogwartsCardInfo) private _infos;                 // issuer가 발급한 카드 정보
     mapping(uint => address) private _issuerOfToken;                  // tokenId의 issuer
     mapping(address => uint) private _amountOfTokenOwnedByIssuer;     // issuer가 현재 가지고 있는 자신의 카드 개수(발급한 양 - 남들에게 transfer한 양
                                                                       // ERC721의 _balances는 자신의 카드 개수 뿐만 아니라 자신이 받은 카드 개수까지 value값으로 가진다는 점에서 이 mapping과 차이점을 가진다 
-
     //Events
     event HogwartsCardMinted(
         uint indexed tokenId,
@@ -62,7 +52,7 @@ mapping(address  => HogwartsCardInfo) private _infos;                 // issuer�
         string memory _level,
         string memory _blood,
         string memory _dormitory
-    ) public payable isHogwartsCardInfoRegistered returns (uint256) { //호그와트 NFT 한 개 발급  
+    ) public payable { //호그와트 NFT 한 개 발급  
         // card 정보 세팅
         HogwartsCardInfo memory hogwartsCardInfo = HogwartsCardInfo({
             issuer: msg.sender,
@@ -86,32 +76,10 @@ mapping(address  => HogwartsCardInfo) private _infos;                 // issuer�
 
         _mint(msg.sender, newTokenId);
         _issuerOfToken[newTokenId] = msg.sender;      
-        //_amountOfTokenOwnedByIssuer[msg.sender]++;
-         if (!_amountOfTokenOwnedByIssuer[msg.sender]) {
-        _amountOfTokenOwnedByIssuer[msg.sender][_dormitory] = {
-        Gryffindor: 0,
-        Hufflepuff: 0,
-        Ravenclaw: 0,
-        Slytherin: 0
-           };
-        }
-        // 기숙사 별로 다른 amoutOfToken의 양을 준다. 
-        if (_dormitory === Dormitory.Gryffindor) {
-            _amountOfTokenOwnedByIssuer[msg.sender][Gryffindor] += 5;
-        } else if (_dormitory === Dormitory.Hufflepuff) {
-            _amountOfTokenOwnedByIssuer[msg.sender][Hufflepuff]+= 3;
-        } else if (_dormitory === Dormitory.Ravenclaw) {
-            _amountOfTokenOwnedByIssuer[msg.sender][ Ravenclaw] += 4;
-        } else if (_dormitory === Dormitory.Slytherin) {
-            _amountOfTokenOwnedByIssuer[msg.sender][ Slytherin] += 2;
-        }
-         return newTokenId;
-    }
+        _amountOfTokenOwnedByIssuer[msg.sender]++;
 
-    
         emit HogwartsCardMinted(newTokenId, msg.sender, _name, _age, _description, _mbti, _hobby, _level, _blood, _dormitory);
-        return newTokenId;
-    
+    }
 
     function _incrementTokenId() internal returns (uint256) {
         _tokenIdCounter.increment();
@@ -119,10 +87,13 @@ mapping(address  => HogwartsCardInfo) private _infos;                 // issuer�
     }
 
     //getter Funtions
-    function getUnemployedCardInfo(address issuer) external view returns (HogwartsCardInfo memory){
+    function getUnemployedCardInfo(address issuer) external view returns (HogwartsCardInfo memory) {
         return _infos[issuer];
     }
-    function getAmountOfTokenOwnedByIssuer(address issuer) external view returns (uint){
+    function getAmountOfTokenOwnedByIssuer(address issuer) external view returns (uint) {
         return _amountOfTokenOwnedByIssuer[issuer];
+    }
+    function getTokenId() external view returns (uint) {
+        return _tokenIdCounter.current();
     }
 }
